@@ -409,6 +409,44 @@ function crearEstructura(){
 }
 
 // 👇 AQUÍ PEGAS TU CÓDIGO
+    // ==================== MODO RESPIRACIÓN GUIADA ====================
+function iniciarRespiracionGuiada() {
+    speak("Iniciando ejercicio de respiración para calmarte.");
+    
+    statusEl.innerText = "🫁 Respiración Guiada";
+    
+    answerDiv.style.display = "block";
+    answerDiv.innerHTML = `
+        <strong>🫁 Ejercicio de Respiración 4-7-8</strong><br><br>
+        Sigue mis instrucciones con la voz:<br><br>
+        1. Inhala por la nariz durante 4 segundos<br>
+        2. Retén el aire durante 7 segundos<br>
+        3. Exhala por la boca durante 8 segundos<br><br>
+        Vamos a hacerlo juntos...
+    `;
+
+    // Secuencia de respiración con voz
+    setTimeout(() => {
+        speak("Inhala profundamente por la nariz... cuenta 1, 2, 3, 4");
+        stateColor.h = 180;  // color calmante
+    }, 1500);
+
+    setTimeout(() => {
+        speak("Ahora retiene el aire... 1, 2, 3, 4, 5, 6, 7");
+        stateColor.h = 60;
+    }, 7000);
+
+    setTimeout(() => {
+        speak("Exhala lentamente por la boca... como soplando una vela... 1, 2, 3, 4, 5, 6, 7, 8");
+        stateColor.h = 220;
+    }, 16000);
+
+    setTimeout(() => {
+        speak("Muy bien. Repite este ciclo 4 veces más cuando lo necesites. ¿Cómo te sientes ahora?");
+        answerDiv.innerHTML += `<br><br><strong>¡Excelente trabajo!</strong>`;
+    }, 28000);
+}
+// ==================================================================
 // ==================== FUNCIÓN PARA MOSTRAR COMANDOS EN CADA MODO ====================
 function mostrarComandosModo(modo) {
     let mensajeVoz = "";
