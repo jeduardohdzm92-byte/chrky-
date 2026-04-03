@@ -409,7 +409,139 @@ function crearEstructura(){
 }
 
 // 👇 AQUÍ PEGAS TU CÓDIGO
+// ==================== FUNCIÓN PARA MOSTRAR COMANDOS EN CADA MODO ====================
+function mostrarComandosModo(modo) {
+    let mensajeVoz = "";
+    let htmlPantalla = "";
 
+    switch(modo) {
+        case "estudios":
+            mensajeVoz = "Modo Estudios activado. Puedes preguntarme sobre matemáticas, historia, inglés o cualquier tema.";
+            htmlPantalla = `
+                <strong>📚 Modo Estudios</strong><br><br>
+                Puedes decirme:<br>
+                • Resuelve 2x + 5 = 13<br>
+                • Factoriza x² - 5x + 6<br>
+                • Traduce "hello" al español<br>
+                • Explícame la Segunda Guerra Mundial<br>
+                • Ayuda con inglés<br>
+                • Salir del modo estudios
+            `;
+            break;
+
+        case "emocional":
+            mensajeVoz = "Modo Emocional activado. Voy a hacerte preguntas del test de Beck.";
+            htmlPantalla = `
+                <strong>❤️ Modo Emocional (BDI-II)</strong><br><br>
+                • Responde solo con números: 0, 1, 2 o 3<br>
+                • Di "salir" en cualquier momento para terminar
+            `;
+            break;
+
+        case "ejercicio":
+            mensajeVoz = "Modo Ejercicio activado. Vamos a mover el cuerpo.";
+            htmlPantalla = `
+                <strong>🏋️ Modo Ejercicio</strong><br><br>
+                Puedes decirme:<br>
+                • Rutina de 10 minutos<br>
+                • Ejercicios para brazos<br>
+                • Ejercicios para abdomen<br>
+                • Calentamiento<br>
+                • Estiramientos<br>
+                • Quiero una rutina completa<br>
+                • Salir
+            `;
+            break;
+
+        case "humor":
+            mensajeVoz = "Modo Humor activado. Vamos a subir ese ánimo.";
+            htmlPantalla = `
+                <strong>😄 Modo Humor</strong><br><br>
+                Puedes decir:<br>
+                • Cuéntame un chiste<br>
+                • Hazme reír<br>
+                • Salir
+            `;
+            break;
+
+        default:
+            mensajeVoz = "Modo activado.";
+    }
+
+    speak(mensajeVoz);
+    
+    // Mostrar en la pantalla
+    answerDiv.style.display = "block";
+    answerDiv.innerHTML = htmlPantalla;
+}
+// ==================================================================
+// Función para mostrar los comandos disponibles en cada modo
+function mostrarComandosModo(modo) {
+    let mensaje = "";
+    let htmlMensaje = "";
+
+    switch(modo) {
+        case "estudios":
+            mensaje = "Modo Estudios activado. Puedes preguntarme sobre matemáticas, historia, inglés, literatura o cualquier tema.";
+            htmlMensaje = `
+                <strong>📚 Modo Estudios</strong><br><br>
+                Puedes decirme:<br>
+                • Resuelve 2x + 5 = 13<br>
+                • Factoriza x² - 5x + 6<br>
+                • Traduce "hello" al español<br>
+                • Explícame la Revolución Mexicana<br>
+                • Quiero ayuda con inglés<br>
+                • Salir del modo estudios
+            `;
+            break;
+
+        case "emocional":
+            mensaje = "Modo Emocional activado. Estoy aquí para ayudarte con tus emociones.";
+            htmlMensaje = `
+                <strong>❤️ Modo Emocional</strong><br><br>
+                Responde solo con números del 0 al 3 en las preguntas.<br><br>
+                Puedes decir:<br>
+                • Salir<br>
+                • Quiero hacer el test de depresión
+            `;
+            break;
+
+        case "ejercicio":
+            mensaje = "Modo Ejercicio activado. Vamos a movernos.";
+            htmlMensaje = `
+                <strong>🏋️ Modo Ejercicio</strong><br><br>
+                Puedes decirme:<br>
+                • Rutina de 10 minutos<br>
+                • Ejercicios para brazos<br>
+                • Ejercicios para abdomen<br>
+                • Calentamiento<br>
+                • Estiramientos<br>
+                • Quiero una rutina completa<br>
+                • Salir
+            `;
+            break;
+
+        case "humor":
+            mensaje = "Modo Humor activado. Vamos a subir el ánimo.";
+            htmlMensaje = `
+                <strong>😄 Modo Humor</strong><br><br>
+                Puedes decir:<br>
+                • Cuéntame un chiste<br>
+                • Hazme reír<br>
+                • Salir
+            `;
+            break;
+
+        default:
+            mensaje = "Modo activado.";
+    }
+
+    speak(mensaje);
+    
+    // Mostrar en pantalla
+    answerDiv.style.display = "block";
+    answerDiv.innerHTML = htmlMensaje;
+}
 // ==================== NUEVOS BOTONES Y MODO EJERCICIO ====================
 
 // Función principal que se llama cuando tocas cualquier botón
@@ -445,10 +577,10 @@ let modoEjercicioActivo = false;
 
 function iniciarModoEjercicio() {
     modoEjercicioActivo = true;
-    speak("¡Modo Ejercicio activado!  Vamos a mover el cuerpo. ¿Qué quieres hacer?");
+    speak("¡Modo Ejercicio activado!  ");
     
     statusEl.innerText = "Modo Ejercicio Activo";
-    
+    mostrarComandosModo("ejercicio");
     answerDiv.style.display = "block";
     answerDiv.innerHTML = `
         <strong> Modo Ejercicio</strong><br><br>
@@ -562,6 +694,7 @@ function activarModoHumor(){
   speak("Modo humor activado. Vamos a subir ese ánimo.");
 
   statusEl.innerText = "Modo Humor ";
+  mostrarComandosModo("humor");
 }
 function contarChistePositivo(){
   const chistes = [
@@ -575,6 +708,7 @@ function contarChistePositivo(){
 
   let frase = chistes[Math.floor(Math.random()*chistes.length)];
   speak(frase);
+mostrarComandosModo("humor");
 }
 
 // ────────────────────────────────────────────────
@@ -605,14 +739,17 @@ const preguntasBDI = [
 ];
 
 function iniciarModoEmocional(){
-
-  modoEmocionalActivo = true; faseBDI = 0; respuestasBDI = [];
-mostrarMoodBoard();
-document.getElementById("bdiButtons").style.display = "flex";
-  speak("¡Hola! Bienvenido al modo emocional. Voy a guiarte por el Inventario de Depresión de Beck (BDI-II).");
-  speak("Responde solo con el número 0, 1, 2 o 3. Di 'salir' para terminar.");
-  statusEl.innerText = "Modo Emocional - BDI-II activado";
-  setTimeout(siguientePreguntaBDI, 2000);
+  modoEmocionalActivo = true; 
+  faseBDI = 0; 
+  respuestasBDI = [];
+  
+  mostrarMoodBoard();
+  document.getElementById("bdiButtons").style.display = "flex";
+  
+  speak("Modo Emocional activado.");
+  mostrarComandosModo("emocional");
+  
+  setTimeout(siguientePreguntaBDI, 2500);
 }
 
 function siguientePreguntaBDI(){
@@ -678,12 +815,10 @@ function guardarResultado(){
 // ────────────────────────────────────────────────
 function iniciarModoEstudios(){
   modoEstudiosActivo = true;
-  speak("¡Modo Estudios activado! Con gusto te ayudo con matemáticas, historia, inglés, literatura o cualquier tema. ¿Qué quieres aprender?");
-  statusEl.innerText = "Modo Estudios  Pregúntame lo que sea";
-  answerDiv.style.display = "block";
-  answerDiv.innerHTML = "<strong>Estoy listo. Dime tu duda o tema (también puedes traducir en cualquier momento).</strong>";
+  speak("Modo Estudios activado.");
+  statusEl.innerText = "📚 Modo Estudios Activo";
+  mostrarComandosModo("estudios");
 }
-
 function procesarConsultaEstudios(texto){
   let limpio = limpiar(texto);
   answerDiv.style.display = "block";
