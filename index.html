@@ -29,7 +29,29 @@ canvas{display:block;}
 #resultModal .btn-repetir{background:#0066cc;color:white;}
 #resultModal .btn-repetir:hover{background:#0088ff;}
 #resultModal .btn-guardar{background:#28a745;color:white;}
+/* ==================== ESTILO BOTONES VERTICALES ==================== */
+.quick-btn {
+    padding: 12px 16px;
+    font-size: 15px;
+    border: none;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: all 0.2s;
+    width: 140px;           /* Ancho fijo para que se vean uniformes */
+    text-align: left;
+    white-space: nowrap;
+}
 
+.quick-btn:hover, .quick-btn:active {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateX(-5px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+}
+/* ================================================================== */
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.0/math.min.js"></script>
 </head>
@@ -40,6 +62,25 @@ canvas{display:block;}
 <div id="mic">🎤</div>
 <div id="status">Charlie listo. Di un comando.</div>
 <div id="answer"></div>
+<!-- ==================== BOTONES VERTICALES A LA DERECHA ==================== -->
+<div id="quickButtons" style="
+    position: fixed;
+    right: 15px;           /* Orilla derecha */
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;   /* Vertical */
+    gap: 10px;
+    z-index: 7;
+">
+    <button onclick="activarModo('estudios')" class="quick-btn"> Estudios</button>
+    <button onclick="activarModo('emocional')" class="quick-btn"> Emocional</button>
+    <button onclick="activarModo('ejercicio')" class="quick-btn"> Ejercicio</button>
+    <button onclick="activarModo('humor')" class="quick-btn"> Humor</button>
+    <button onclick="activarModo('respiracion')" class="quick-btn"> Respirar</button>
+    <button onclick="activarModo('normal')" class="quick-btn"> Normal</button>
+</div>
+<!-- ================================================================== -->
 <div id="moodBoard" style="
 position:fixed;
 bottom:160px;
@@ -105,7 +146,8 @@ z-index:6;
 
 <script>
 // ────────────────────────────────────────────────
-// ANIMACIÓN NÚCLEO
+// ANIMACIÓN NÚCLEO CIENTÍFICO MEJORADO
+// Carbono • Fósforo • E=mc² • Hélice de ADN
 // ────────────────────────────────────────────────
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
@@ -124,37 +166,159 @@ window.addEventListener("resize", () => {
   center = {x: canvas.width/2, y: canvas.height/2};
 });
 
-let vx = 0.2, vy = 0.15;
-vx += (Math.random()-0.5)*0.02; vy += (Math.random()-0.5)*0.02;
-vx = Math.max(Math.min(vx,0.5),-0.5);
-vy = Math.max(Math.min(vy,0.5),-0.5);
-
+let vx = 0.18, vy = 0.14;
 let speaking = false;
-let baseRadius = 70;
+let baseRadius = 78;
 let radius = baseRadius;
-let stateColor = {h: 200};
-let particles = [];
+let stateColor = {h: 205};
 
-for(let i=0;i<200;i++){
-  particles.push({angle:Math.random()*Math.PI*2, distance:120+Math.random()*140, speed:0.0005+Math.random()*0.001, size:1+Math.random()*2});
+let particles = [];
+let floatingScience = [];
+let dnaHelices = [];
+
+// Partículas Carbono y Fósforo
+for(let i = 0; i < 260; i++){
+  particles.push({
+    angle: Math.random() * Math.PI * 2,
+    distance: 130 + Math.random() * 170,
+    speed: 0.0004 + Math.random() * 0.0017,
+    size: Math.random() > 0.6 ? 2.3 : 1.5,
+    type: Math.random() > 0.57 ? "phosphorus" : "carbon",
+    pulse: Math.random() * Math.PI * 2
+  });
 }
 
-function moveCenter(){center.x+=vx;center.y+=vy;if(center.x<200||center.x>canvas.width-200)vx*=-1;if(center.y<200||center.y>canvas.height-200)vy*=-1;}
+function createFloatingScience(){
+  const items = [
+    {txt: "E=mc²", col: "#ffeb3b", sz: 20},
+    {txt: "C", col: "#666666", sz: 28},
+    {txt: "P", col: "#ffee58", sz: 28},
+    {txt: "DNA", col: "#4ade80", sz: 18}
+  ];
+  const item = items[Math.floor(Math.random()*items.length)];
+  floatingScience.push({
+    text: item.txt,
+    color: item.col,
+    size: item.sz,
+    x: center.x + (Math.random()-0.5)*260,
+    y: center.y + (Math.random()-0.5)*200,
+    life: 240,
+    vy: -0.7 - Math.random()*1.2
+  });
+}
+
+function createDNAHelix(){
+  dnaHelices.push({
+    x: center.x + (Math.random()-0.5)*160,
+    y: center.y - 90,
+    life: 160,
+    speed: 0.028
+  });
+}
+
+function moveCenter(){
+  center.x += vx; center.y += vy;
+  if(center.x < 230 || center.x > canvas.width-230) vx *= -1;
+  if(center.y < 230 || center.y > canvas.height-230) vy *= -1;
+}
+
+function drawDNA(x, y, life){
+  const alpha = life / 160;
+  ctx.strokeStyle = `rgba(102, 255, 140, ${alpha})`;
+  ctx.lineWidth = 2.8;
+  for(let i = 0; i < 14; i++){
+    let offset = Math.sin(i * 0.6 + Date.now()*0.004) * 19;
+    ctx.beginPath();
+    ctx.moveTo(x - 24 + offset, y + i*13);
+    ctx.lineTo(x + 24 - offset, y + i*13);
+    ctx.stroke();
+  }
+}
+
 function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);moveCenter();
-  let halo=ctx.createRadialGradient(center.x,center.y,radius,center.x,center.y,radius+200);
-  halo.addColorStop(0,`hsla(${stateColor.h},100%,60%,0.6)`);halo.addColorStop(1,"transparent");
-  ctx.fillStyle=halo;ctx.beginPath();ctx.arc(center.x,center.y,radius+200,0,Math.PI*2);ctx.fill();
-  let plasma=ctx.createRadialGradient(center.x,center.y,0,center.x,center.y,radius);
-  plasma.addColorStop(0,"#e6f7ff");plasma.addColorStop(0.4,`hsl(${stateColor.h},100%,50%)`);plasma.addColorStop(1,"#001a33");
-  ctx.fillStyle=plasma;ctx.beginPath();ctx.arc(center.x,center.y,radius,0,Math.PI*2);ctx.fill();
-  particles.forEach(p=>{p.angle+=p.speed;let x=center.x+Math.cos(p.angle)*p.distance;let y=center.y+Math.sin(p.angle)*p.distance;
-    ctx.fillStyle=`hsla(${stateColor.h},100%,60%,0.8)`;ctx.beginPath();ctx.arc(x,y,p.size,0,Math.PI*2);ctx.fill();});
-  if(speaking){radius=baseRadius+Math.sin(Date.now()*0.006)*10;if(radius>baseRadius+14)speaking=false;}
-  else{radius=Math.max(baseRadius,radius-0.4);}
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  moveCenter();
+  actualizarEnergia();
+  evolucionar();
+
+  // Halo
+  let halo = ctx.createRadialGradient(center.x, center.y, radius, center.x, center.y, radius + 260);
+  halo.addColorStop(0, `hsla(${stateColor.h}, 100%, 65%, ${0.45 + energia * 0.45})`);
+  halo.addColorStop(1, "transparent");
+  ctx.fillStyle = halo;
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, radius + 260, 0, Math.PI*2);
+  ctx.fill();
+
+  // Núcleo
+  let dynamicRadius = baseRadius + energia * 28;
+  let plasma = ctx.createRadialGradient(center.x, center.y, 15, center.x, center.y, dynamicRadius);
+  plasma.addColorStop(0, "#f0f8ff");
+  plasma.addColorStop(0.45, `hsl(${stateColor.h}, 100%, 57%)`);
+  plasma.addColorStop(1, "#0a1f35");
+  ctx.fillStyle = plasma;
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, dynamicRadius, 0, Math.PI*2);
+  ctx.fill();
+
+  // Estructura molecular (la que ya tenías)
+  if (estructura && estructura.length > 0) {
+    estructura.forEach(nodo => {
+      nodo.angulo += nodo.velocidad;
+      let nx = center.x + Math.cos(nodo.angulo) * nodo.distancia;
+      let ny = center.y + Math.sin(nodo.angulo) * nodo.distancia;
+      ctx.beginPath();
+      ctx.moveTo(center.x, center.y);
+      ctx.lineTo(nx, ny);
+      ctx.strokeStyle = "rgba(180,220,255,0.18)";
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(nx, ny, 3.5, 0, Math.PI*2);
+      ctx.fillStyle = "#a0d8ff";
+      ctx.fill();
+    });
+  }
+
+  // Partículas Carbono y Fósforo
+  particles.forEach(p => {
+    p.angle += p.speed;
+    p.pulse += 0.085;
+    let px = center.x + Math.cos(p.angle) * p.distance;
+    let py = center.y + Math.sin(p.angle) * p.distance * (0.96 + Math.sin(p.pulse)*0.07);
+
+    if(p.type === "phosphorus"){
+      ctx.shadowBlur = 25;
+      ctx.shadowColor = "#ffee58";
+      ctx.fillStyle = "#fff59d";
+    } else {
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = "#444";
+      ctx.fillStyle = "#777777";
+    }
+    ctx.beginPath();
+    ctx.arc(px, py, p.size, 0, Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+
+
+
+  
+
+  // Efecto al hablar
+  if(speaking){
+    radius = baseRadius + Math.sin(Date.now() * 0.009) * 17;
+    if(Math.random() > 0.82) createFloatingScience();
+    if(Math.random() > 0.93) createDNAHelix();
+  } else {
+    radius = Math.max(baseRadius - 5, radius - 0.65);
+  }
+
+  if(Math.random() > 0.983) createFloatingScience();
+  if(Math.random() > 0.991) createDNAHelix();
+
   requestAnimationFrame(draw);
 }
-draw();
 
 // ────────────────────────────────────────────────
 // VARIABLES GLOBALES
@@ -170,20 +334,169 @@ let faseBDI = 0;
 let respuestasBDI = [];
 
 let modoEstudiosActivo = false;
+let respirando = false;
+let faseRespiracion = 0;
 
+// SISTEMA CHARLIE
+let energia = 0.5;        // física
+   // química (nodos)
+let evolucion = 0;        // biología
+
+let estado = "neutral";   // emoción actual
 // ────────────────────────────────────────────────
 // UTILIDADES
 // ────────────────────────────────────────────────
 function limpiar(texto){return texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();}
 function speak(text){speaking=true;let msg=new SpeechSynthesisUtterance(text);msg.lang="es-MX";speechSynthesis.speak(msg);}
 
+function iniciarRespiracion(){
+
+  if(respirando) return;
+
+  respirando = true;
+
+  let fases = ["Inhala", "Sostén", "Exhala"];
+  let tiempos = [4000, 2000, 4000];
+
+  function ciclo(i){
+
+    if(!respirando) return;
+
+    let fase = fases[i];
+    speak(fase);
+
+    // efecto visual
+    if(fase === "Inhala"){
+      baseRadius = 90;
+      stateColor.h = 180;
+    }
+
+    if(fase === "Sostén"){
+      stateColor.h = 60;
+    }
+
+    if(fase === "Exhala"){
+      baseRadius = 60;
+      stateColor.h = 220;
+    }
+
+    setTimeout(()=>{
+      ciclo((i+1)%3);
+    }, tiempos[i]);
+
+  }
+
+  ciclo(0);
+}
+
+function detenerRespiracion(){
+  respirando = false;
+  baseRadius = 70;
+  stateColor.h = 200;
+  speak("Respiración finalizada.");
+}
+
+function crearEstructura(){
+  estructura = [];
+  
+  for(let i=0;i<8;i++){
+    estructura.push({
+      angulo: Math.random()*Math.PI*2,
+      distancia: 40 + Math.random()*30,
+      velocidad: 0.01 + Math.random()*0.02
+    });
+  }
+}
+
 // 👇 AQUÍ PEGAS TU CÓDIGO
+
+// ==================== NUEVOS BOTONES Y MODO EJERCICIO ====================
+
+// Función principal que se llama cuando tocas cualquier botón
+function activarModo(modo) {
+    if (modo === "estudios") {
+        iniciarModoEstudios();
+    } 
+    else if (modo === "emocional") {
+        iniciarModoEmocional();
+    } 
+    else if (modo === "ejercicio") {
+        iniciarModoEjercicio();
+    } 
+    else if (modo === "humor") {
+        activarModoHumor();
+    } 
+    else if (modo === "respiracion") {
+        iniciarRespiracionGuiada();
+    } 
+    else if (modo === "normal") {
+        // Salir de todos los modos
+        modoEstudiosActivo = false;
+        modoEmocionalActivo = false;
+        modoEjercicioActivo = false;
+        speak("Volviendo al modo normal.");
+        statusEl.innerText = "Charlie listo - Modo Normal";
+        answerDiv.style.display = "none";
+    }
+}
+
+// ==================== MODO EJERCICIO ====================
+let modoEjercicioActivo = false;
+
+function iniciarModoEjercicio() {
+    modoEjercicioActivo = true;
+    speak("¡Modo Ejercicio activado!  Vamos a mover el cuerpo. ¿Qué quieres hacer?");
+    
+    statusEl.innerText = "Modo Ejercicio Activo";
+    
+    answerDiv.style.display = "block";
+    answerDiv.innerHTML = `
+        <strong> Modo Ejercicio</strong><br><br>
+        Toca un botón o dime:<br>
+        • Rutina de 10 minutos<br>
+        • Ejercicios para brazos<br>
+        • Ejercicios para abdomen<br>
+        • Calentamiento<br>
+        • Estiramientos<br>
+        • Quiero una rutina completa
+    `;
+}
+
+function procesarEjercicio(texto) {
+    let limpio = limpiar(texto);
+    
+    if (limpio.includes("rutina") || limpio.includes("completa")) {
+        speak("Rutina rápida de 10 minutos: 3 rondas de jumping jacks, sentadillas, flexiones y plank.");
+        answerDiv.innerHTML = `<strong>Rutina de 10 minutos recomendada:</strong><br>
+        1. Jumping Jacks → 30 segundos<br>
+        2. Sentadillas → 30 segundos<br>
+        3. Flexiones → 30 segundos<br>
+        4. Plank → 30 segundos<br><br>
+        Descansa 30 segundos entre ejercicios.`;
+    } 
+    else if (limpio.includes("brazo") || limpio.includes("brazos")) {
+        speak("Para brazos: flexiones de pared, círculos con los brazos y fondos en silla.");
+    } 
+    else if (limpio.includes("abdomen") || limpio.includes("core")) {
+        speak("Para abdomen: plank, crunches y mountain climbers.");
+    } 
+    else if (limpio.includes("estiramiento") || limpio.includes("estirar")) {
+        speak("Estiramientos: toca tus pies, abre los brazos y gira el cuello suavemente.");
+    } 
+    else {
+        speak("Dime qué parte del cuerpo quieres entrenar o si prefieres una rutina completa.");
+    }
+}
+
+// ==================================================================
 
 function mostrarMoodBoard(){
   document.getElementById("moodBoard").style.display = "flex";
 }
 
 function setMood(mood){
+estado = mood; // 👈 AGREGA ESTA LÍNEA
+
   let mensaje = "";
   
   switch(mood){
@@ -204,12 +517,15 @@ function setMood(mood){
       mensaje = "Respira. Literal. Inhala… exhala.";
       break;
   }
-
+if(mood === "triste" || mood === "estresado"){
+  iniciarRespiracion();
+}
   speak(mensaje);
 }
 function responderBDI(valor){
   procesarRespuestaBDI(String(valor));
 }
+
 // ────────────────────────────────────────────────
 // RECONOCIMIENTO DE VOZ
 // ────────────────────────────────────────────────
@@ -235,6 +551,8 @@ function detectarIntencion(text){
   if(/modo emocional|test depresión|bdi|beck|depresion/.test(limpio)) return "modo_emocional";
   if(/modo estudios|estudiar|ayuda estudio|matemáticas|historia|ingles|literatura/.test(limpio)) return "modo_estudios";
   if(/salir|cancelar|modo normal/.test(limpio)) return "salir";
+if(/respirar|relajacion|calmar|ansiedad/.test(limpio)) return "respirar";
+if(/detener respiracion|parar relajacion/.test(limpio)) return "detener_respiracion";
   return "desconocido";
 }
 function activarModoHumor(){
@@ -243,7 +561,7 @@ function activarModoHumor(){
 
   speak("Modo humor activado. Vamos a subir ese ánimo.");
 
-  statusEl.innerText = "Modo Humor 😊";
+  statusEl.innerText = "Modo Humor ";
 }
 function contarChistePositivo(){
   const chistes = [
@@ -361,7 +679,7 @@ function guardarResultado(){
 function iniciarModoEstudios(){
   modoEstudiosActivo = true;
   speak("¡Modo Estudios activado! Con gusto te ayudo con matemáticas, historia, inglés, literatura o cualquier tema. ¿Qué quieres aprender?");
-  statusEl.innerText = "Modo Estudios 🔥 Pregúntame lo que sea";
+  statusEl.innerText = "Modo Estudios  Pregúntame lo que sea";
   answerDiv.style.display = "block";
   answerDiv.innerHTML = "<strong>Estoy listo. Dime tu duda o tema (también puedes traducir en cualquier momento).</strong>";
 }
@@ -375,7 +693,7 @@ function procesarConsultaEstudios(texto){
     modoEstudiosActivo = false;
     speak("Modo estudios desactivado. ¡Éxito en tus estudios! Vuelve cuando quieras.");
     statusEl.innerText = "Modo terminado.";
-    answerDiv.innerHTML = "<strong>Sesión cerrada. ¡Sigue estudiando con ganas! 🔥</strong>";
+    answerDiv.innerHTML = "<strong>Sesión cerrada. ¡Sigue estudiando con ganas! </strong>";
     return;
   }
 
@@ -418,16 +736,21 @@ if (limpio.includes("traduce") || limpio.includes("traducir") || limpio.includes
 
   return;
 }
-  // Matemáticas
-  if (/matematica|ecuacion|resolver|calcular|algebra|simplificar|derivar|integral|limite|sistema|matriz/.test(limpio)) {
+   // Matemáticas Nivel Preparatoria Mejorada
+  if (/matematica|ecuacion|resolver|calcular|algebra|factorizar|derivada|limite|trigonometria|sistema|ecuaciones/i.test(limpio)) {
     try {
-      let expr = texto.replace(/resuelve|soluciona|calcula|simplifica|deriva|integral de/gi, "").trim();
+      let expr = texto.replace(/resuelve|soluciona|calcula|factoriza|deriva|simplifica/gi, "").trim();
       let result = math.evaluate(expr);
-      answerDiv.innerHTML = `Resultado: <strong>${math.format(result)}</strong>`;
-      speak(`Resultado: ${math.format(result)}`);
+      answerDiv.innerHTML = ` <strong>Resultado:</strong> ${math.format(result, {precision: 8})}`;
+      speak(`El resultado es ${math.format(result)}`);
     } catch (e) {
-      answerDiv.innerHTML = "Error en cálculo. Ejemplo: '2x + 3 = 7' o 'derivar x^2'";
-      speak("Error en cálculo. Intenta de nuevo.");
+      answerDiv.innerHTML = ` <strong>Matemáticas Prepa:</strong><br>
+      Dime el ejercicio completo. Ejemplos:<br>
+      • resuelve 2x + 5 = 17<br>
+      • factoriza x² - 5x + 6<br>
+      • deriva x³ + 2x<br>
+      • resuelve el sistema: 2x + y = 8, x + 3y = 9`;
+      speak("Dime el ejercicio completo y te ayudo paso a paso como en preparatoria.");
     }
     return;
   }
@@ -474,7 +797,7 @@ function respond(text){
     input.disabled = false;
     answerDiv.style.display = "none";
     document.getElementById("resultModal").style.display = "none";
-    speak("¡Todos los modos desactivados! Estoy aquí para ayudarte con una sonrisa 😊. ¿En qué te puedo apoyar ahora?");
+    speak("¡Todos los modos desactivados! Estoy aquí para ayudarte con una sonrisa . ¿En qué te puedo apoyar ahora?");
     statusEl.innerText = "Modo normal activado.";
 document.getElementById("bdiButtons").style.display = "none";
 document.getElementById("moodBoard").style.display = "none";
@@ -495,6 +818,16 @@ if (intencion === "chiste") {
     iniciarModoEmocional();
     return;
   }
+
+if (intencion === "respirar") {
+  iniciarRespiracion();
+  return;
+}
+
+if (intencion === "detener_respiracion") {
+  detenerRespiracion();
+  return;
+}
 
   // Modo estudios
   if (intencion === "modo_estudios") {
@@ -544,8 +877,13 @@ if (intencion === "chiste") {
   if (modoEmocionalActivo) {procesarRespuestaBDI(text); return;}
   if (modoEstudiosActivo) {procesarConsultaEstudios(text); return;}
 
+  if (modoEjercicioActivo) {
+    procesarEjercicio(text);
+    return;
+  }
+
   // Respuesta amable por defecto
-  speak("¡Claro! Estoy aquí para ayudarte con gusto 😊. ¿En qué te puedo apoyar hoy?");
+  speak("¡Claro! Estoy aquí para ayudarte con gusto . ¿En qué te puedo apoyar hoy?");
 }
 
 // ────────────────────────────────────────────────
@@ -607,8 +945,26 @@ function cerrarCalculadora(){calc.style.display = "none";}
 // ────────────────────────────────────────────────
 // INICIO
 // ────────────────────────────────────────────────
-speak("¡Hola! Soy Charlie 13. Estoy aquí para ayudarte. Puedes decirme: modo emocional, modo estudios, calculadora o chiste. También puedes traducir en cualquier momento.");
+speak("¡Hola! Soy Charlie version 13.");
 statusEl.innerText = "Charlie listo. ¿En qué te ayudo hoy?";
+crearEstructura();
+draw();
+function actualizarEnergia(){
+  if(estado === "feliz") energia = 0.7;
+  else if(estado === "triste") energia = 0.3;
+  else if(estado === "estresado") energia = 1;
+  else energia = 0.5;
+}
+function evolucionar(){
+  evolucion += 0.001;
+
+  if(estructura && estructura.length){
+    estructura.forEach(nodo=>{
+      nodo.distancia += Math.sin(evolucion)*0.05;
+    });
+  }
+}
+
 </script>
 </body>
 </html>
