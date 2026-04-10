@@ -52,6 +52,7 @@ canvas{display:block;}
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
 }
 /* ================================================================== */
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.0/math.min.js"></script>
 </head>
@@ -347,8 +348,82 @@ let estado = "neutral";   // emoción actual
 // UTILIDADES
 // ────────────────────────────────────────────────
 function limpiar(texto){return texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();}
-function speak(text){speaking=true;let msg=new SpeechSynthesisUtterance(text);msg.lang="es-MX";speechSynthesis.speak(msg);}
+// ==================== VOZ REAL - USANDO TUS GRABACIONES ====================
+let audioActual = null;
 
+function speak(texto) {
+    speaking = true;
+
+    // Si hay un audio reproduciéndose, lo paramos primero
+    if (audioActual) {
+        audioActual.pause();
+    }
+
+    let archivoAudio = "";
+
+    // === Mapeo de textos a tus archivos de audio ===
+    const textoLower = texto.toLowerCase();
+
+    if (textoLower.includes("hola") || textoLower.includes("soy charlie")) {
+        archivoAudio = "voces/hola.mp4";
+    }
+    else if (textoLower.includes("modo estudios") || textoLower.includes("estudios activado")) {
+        archivoAudio = "voces/modo_estudios.mp4";
+    }
+    else if (textoLower.includes("modo emocional") || textoLower.includes("emocional activado")) {
+        archivoAudio = "voces/modo_emocional.mp4";
+    }
+    else if (textoLower.includes("modo ejercicio") || textoLower.includes("ejercicio activado")) {
+        archivoAudio = "voces/modo_ejercicio.mp4";
+    }
+    else if (textoLower.includes("modo hobbies") || textoLower.includes("hobbies activado")) {
+        archivoAudio = "voces/modo_hobbies.mp4";
+    }
+    else if (textoLower.includes("respiración") || textoLower.includes("inhala")) {
+        archivoAudio = "voces/inhala.mp4";
+    }
+    else if (textoLower.includes("exhala") || textoLower.includes("suelta")) {
+        archivoAudio = "voces/exhala.mp4";
+    }
+    else if (textoLower.includes("muy bien") || textoLower.includes("excelente trabajo")) {
+        archivoAudio = "voces/excelente.mp4";
+    }
+    else if (textoLower.includes("modo normal") || textoLower.includes("normal")) {
+        archivoAudio = "voces/modo_normal.mp4";
+    }
+    else if (textoLower.includes("rutina de 10 minutos")) {
+        archivoAudio = "voces/rutina_10.mp4";
+    }
+    else {
+        // Si no encuentra coincidencia, usa la voz del navegador como respaldo
+        let msg = new SpeechSynthesisUtterance(texto);
+        msg.lang = "es-MX";
+        msg.pitch = 1.05;
+        msg.rate = 1.0;
+        speechSynthesis.speak(msg);
+        speaking = false;
+        return;
+    }
+
+    // Reproducir tu grabación
+    audioActual = new Audio(archivoAudio);
+    
+    audioActual.onended = function() {
+        speaking = false;
+    };
+
+    audioActual.onerror = function() {
+        console.log("No se encontró el archivo: " + archivoAudio);
+        // Si falla, usa voz del navegador
+        let msg = new SpeechSynthesisUtterance(texto);
+        msg.lang = "es-MX";
+        speechSynthesis.speak(msg);
+        speaking = false;
+    };
+
+    audioActual.play();
+}
+// ==================================================================
 function iniciarRespiracion(){
 
   if(respirando) return;
@@ -409,7 +484,8 @@ function crearEstructura(){
 }
 
 // 👇 AQUÍ PEGAS TU CÓDIGO
-    // ==================== MODO RESPIRACIÓN GUIADA ====================
+
+// ==================== MODO RESPIRACIÓN GUIADA ====================
 function iniciarRespiracionGuiada() {
     speak("Iniciando ejercicio de respiración para calmarte.");
     
@@ -593,6 +669,9 @@ function activarModo(modo) {
     else if (modo === "ejercicio") {
         iniciarModoEjercicio();
     } 
+else if (modo === "hobbies") {           // ← Nueva opción
+        iniciarModoHobbies();
+    }
     else if (modo === "humor") {
         activarModoHumor();
     } 
@@ -615,51 +694,141 @@ let modoEjercicioActivo = false;
 
 function iniciarModoEjercicio() {
     modoEjercicioActivo = true;
-    speak("¡Modo Ejercicio activado!  ");
+    speak("¡Modo Ejercicio activado! 🏋️ Vamos a cuidar tu cuerpo.");
+    statusEl.innerText = "🏋️ Modo Ejercicio Activo";
     
-    statusEl.innerText = "Modo Ejercicio Activo";
-    mostrarComandosModo("ejercicio");
+    mostrarComandosModo("ejercicio");   // Muestra los comandos
+    
     answerDiv.style.display = "block";
     answerDiv.innerHTML = `
-        <strong> Modo Ejercicio</strong><br><br>
-        Toca un botón o dime:<br>
-        • Rutina de 10 minutos<br>
+        <strong>🏋️ Modo Ejercicio Mejorado</strong><br><br>
+        Dime qué quieres hacer:<br><br>
+        • Rutina completa de 10 minutos<br>
+        • Rutina de 20 minutos<br>
         • Ejercicios para brazos<br>
-        • Ejercicios para abdomen<br>
+        • Ejercicios para abdomen / core<br>
+        • Ejercicios para piernas<br>
         • Calentamiento<br>
-        • Estiramientos<br>
-        • Quiero una rutina completa
+        • Estiramientos finales<br>
+        • Ejercicio en casa sin equipo<br>
+        • Salir del modo
     `;
 }
 
 function procesarEjercicio(texto) {
     let limpio = limpiar(texto);
     
-    if (limpio.includes("rutina") || limpio.includes("completa")) {
-        speak("Rutina rápida de 10 minutos: 3 rondas de jumping jacks, sentadillas, flexiones y plank.");
-        answerDiv.innerHTML = `<strong>Rutina de 10 minutos recomendada:</strong><br>
-        1. Jumping Jacks → 30 segundos<br>
-        2. Sentadillas → 30 segundos<br>
-        3. Flexiones → 30 segundos<br>
-        4. Plank → 30 segundos<br><br>
-        Descansa 30 segundos entre ejercicios.`;
-    } 
+    if (limpio.includes("10 minutos") || limpio.includes("diez minutos")) {
+        speak("Rutina de 10 minutos lista. 3 rondas: Jumping jacks, sentadillas, flexiones y plank.");
+        answerDiv.innerHTML = `<strong>Rutina 10 minutos:</strong><br>1. Jumping Jacks (30 seg)<br>2. Sentadillas (30 seg)<br>3. Flexiones (30 seg)<br>4. Plank (30 seg)<br><br>Descansa 30 segundos entre ejercicios.`;
+    }
+    else if (limpio.includes("20 minutos") || limpio.includes("veinte minutos")) {
+        speak("Rutina de 20 minutos más completa activada.");
+        answerDiv.innerHTML = `<strong>Rutina 20 minutos:</strong><br>• Calentamiento 3 min<br>• Sentadillas 12 reps × 3<br>• Flexiones 10 reps × 3<br>• Plank 45 seg × 3<br>• Mountain climbers 30 seg × 3`;
+    }
     else if (limpio.includes("brazo") || limpio.includes("brazos")) {
-        speak("Para brazos: flexiones de pared, círculos con los brazos y fondos en silla.");
-    } 
+        speak("Ejercicios para brazos: flexiones, fondos en silla y círculos con brazos.");
+    }
     else if (limpio.includes("abdomen") || limpio.includes("core")) {
         speak("Para abdomen: plank, crunches y mountain climbers.");
-    } 
+    }
+    else if (limpio.includes("pierna") || limpio.includes("piernas")) {
+        speak("Ejercicios para piernas: sentadillas, lunges y elevación de talones.");
+    }
     else if (limpio.includes("estiramiento") || limpio.includes("estirar")) {
         speak("Estiramientos: toca tus pies, abre los brazos y gira el cuello suavemente.");
-    } 
+    }
     else {
-        speak("Dime qué parte del cuerpo quieres entrenar o si prefieres una rutina completa.");
+        speak("Dime qué parte del cuerpo quieres trabajar o si prefieres una rutina de 10 o 20 minutos.");
     }
 }
-
 // ==================================================================
 
+// ==================== NUEVO MODO HOBBIES / RELAJACIÓN ====================
+let modoHobbiesActivo = false;
+
+function iniciarModoHobbies() {
+    modoHobbiesActivo = true;
+    speak("Modo Hobbies y Relajación activado. ¿Qué te gustaría hacer para sentirte mejor?");
+    statusEl.innerText = "🎨 Modo Hobbies & Relajación";
+    
+    mostrarComandosModo("hobbies");
+    
+    answerDiv.style.display = "block";
+    answerDiv.innerHTML = `
+        <strong>🎨 Modo Hobbies y Relajación</strong><br><br>
+        Dime qué te gusta o te tranquiliza:<br><br>
+        • Quiero ideas para cocinar<br>
+        • Recomiéndame una serie o película relajante<br>
+        • Ideas para dibujar o pintar<br>
+        • Música para relajarme<br>
+        • Actividades para hacer en casa<br>
+        • Quiero leer algo tranquilo<br>
+        • Salir del modo
+    `;
+}
+
+function procesarHobbies(texto) {
+    let limpio = limpiar(texto);
+    
+    if (limpio.includes("cocinar") || limpio.includes("receta")) {
+        speak("¿Qué tipo de comida te gustaría preparar? Puedo darte recetas fáciles como pasta, omelette, smoothie o postres rápidos.");
+    }
+    else if (limpio.includes("serie") || limpio.includes("pelicula")) {
+        speak("Te recomiendo series relajantes como 'The Office', 'Ted Lasso' o 'Midnight Diner'.");
+    }
+    else if (limpio.includes("dibujar") || limpio.includes("pintar")) {
+        speak("Puedes dibujar mandalas, paisajes simples o probar doodles. ¿Quieres ideas fáciles?");
+    }
+    else if (limpio.includes("musica") || limpio.includes("relajante")) {
+        speak("Te recomiendo música lo-fi, piano suave o sonidos de naturaleza.");
+    }
+    else {
+        speak("Dime qué actividad te gusta o te ayuda a relajarte. Puedo darte ideas de cocina, dibujo, lectura o entretenimiento.");
+    }
+}
+// ==================== YOUTUBE INTEGRADO ====================
+function buscarEnYouTube(consulta) {
+    answerDiv.style.display = "block";
+    answerDiv.innerHTML = `<p>🔍 Buscando en YouTube: "${consulta}"...</p>`;
+
+    // Usamos una búsqueda pública simple (sin necesidad de API Key)
+    const searchQuery = encodeURIComponent(consulta);
+    const url = `https://www.youtube.com/results?search_query=${searchQuery}`;
+
+    // Abrimos los resultados en una nueva pestaña (más simple y seguro)
+    window.open(url, '_blank');
+
+    // También mostramos una opción para reproducir directamente si queremos
+    answerDiv.innerHTML = `
+        <strong>🔍 Resultados de YouTube</strong><br><br>
+        He abierto YouTube con tu búsqueda: <strong>"${consulta}"</strong><br><br>
+        Si quieres un video específico, dime algo como:<br>
+        • Video de cocina fácil<br>
+        • Meditación guiada 10 minutos<br>
+        • Ejercicios para principiantes en casa
+    `;
+
+    speak(`He abierto YouTube buscando "${consulta}". Revisa la nueva pestaña.`);
+}
+
+// Función para detectar cuando el usuario quiere buscar en YouTube
+function detectarYouTube(texto) {
+    let limpio = limpiar(texto);
+    if (limpio.includes("youtube") || limpio.includes("video") || limpio.includes("busca en youtube")) {
+        // Quitamos las palabras clave para hacer la búsqueda limpia
+        let consulta = texto
+            .replace(/busca en youtube|buscar en youtube|youtube|video de/gi, "")
+            .trim();
+        
+        if (consulta.length > 2) {
+            buscarEnYouTube(consulta);
+            return true;
+        }
+    }
+    return false;
+}
+// ==================================================================
 function mostrarMoodBoard(){
   document.getElementById("moodBoard").style.display = "flex";
 }
@@ -954,6 +1123,10 @@ if (limpio.includes("traduce") || limpio.includes("traducir") || limpio.includes
 function respond(text){
   let limpio = limpiar(text);
   let intencion = detectarIntencion(text);
+  // Detección de YouTube
+  if (detectarYouTube(text)) {
+    return;   // Si es una búsqueda de YouTube, terminamos aquí
+  }
 
   // Salir de cualquier modo
   if (intencion === "salir") {
