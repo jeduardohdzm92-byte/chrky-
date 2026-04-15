@@ -29,7 +29,7 @@ canvas{display:block;}
 #resultModal .btn-repetir{background:#0066cc;color:white;}
 #resultModal .btn-repetir:hover{background:#0088ff;}
 #resultModal .btn-guardar{background:#28a745;color:white;}
-/* ==================== ESTILO BOTONES VERTICALES ==================== */
+//  ESTILO BOTONES VERTICALES 
 .quick-btn {
     padding: 12px 16px;
     font-size: 15px;
@@ -51,6 +51,43 @@ canvas{display:block;}
     transform: translateX(-5px);
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
 }
+/* ==================== ESTILO BOTONES MODO EMOCIONAL ==================== */
+.bdi-num-btn {
+    width: 70px;
+    height: 70px;
+    font-size: 28px;
+    font-weight: bold;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    transition: all 0.2s;
+}
+
+.bdi-num-btn:hover {
+    background: rgba(255,255,255,0.3);
+    transform: scale(1.1);
+}
+
+.btn-anterior {
+    padding: 12px 20px;
+    font-size: 16px;
+    background: #ff8800;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    margin-top: 10px;
+}
+
+.btn-anterior:hover {
+    background: #ffaa00;
+    transform: translateX(-5px);
+}
 /* ================================================================== */
 
 </style>
@@ -63,7 +100,7 @@ canvas{display:block;}
 <div id="mic">🎤</div>
 <div id="status">Charlie listo. Di un comando.</div>
 <div id="answer"></div>
-<!-- ==================== BOTONES VERTICALES A LA DERECHA ==================== -->
+// BOTONES VERTICALES A LA DERECHA  
 <div id="quickButtons" style="
     position: fixed;
     right: 15px;           /* Orilla derecha */
@@ -82,38 +119,44 @@ canvas{display:block;}
     <button onclick="activarModo('normal')" class="quick-btn"> Normal</button>
 </div>
 <!-- ================================================================== -->
+<!-- MoodBoard sin emojis -->
 <div id="moodBoard" style="
-position:fixed;
-bottom:160px;
-left:50%;
-transform:translateX(-50%);
-display:none;
-gap:10px;
-z-index:6;
+    position:fixed;
+    bottom:140px;
+    left:50%;
+    transform:translateX(-50%);
+    display:none;
+    gap:10px;
+    z-index:6;
 ">
-
-  <button onclick="setMood('feliz')">😊</button>
-  <button onclick="setMood('normal')">😐</button>
-  <button onclick="setMood('triste')">😢</button>
-  <button onclick="setMood('estresado')">😣</button>
-
+  <button onclick="setMood('feliz')" class="mood-btn">Feliz</button>
+  <button onclick="setMood('normal')" class="mood-btn">Normal</button>
+  <button onclick="setMood('triste')" class="mood-btn">Triste</button>
+  <button onclick="setMood('estresado')" class="mood-btn">Estresado</button>
 </div>
+<!-- ==================== BOTONES MODO EMOCIONAL - IZQUIERDA VERTICAL ==================== -->
 <div id="bdiButtons" style="
-position:fixed;
-bottom:100px;
-left:50%;
-transform:translateX(-50%);
-display:none;
-gap:10px;
-z-index:6;
+    position: fixed;
+    left: 20px;                    /* Orilla izquierda */
+    top: 50%;
+    transform: translateY(-50%);
+    display: none;
+    flex-direction: column;        /* Vertical */
+    gap: 12px;
+    z-index: 8;
+    align-items: flex-start;
 ">
-
-<button onclick="responderBDI(0)">0</button>
-<button onclick="responderBDI(1)">1</button>
-<button onclick="responderBDI(2)">2</button>
-<button onclick="responderBDI(3)">3</button>
-
+    <button onclick="responderBDI(0)" class="bdi-num-btn">0</button>
+    <button onclick="responderBDI(1)" class="bdi-num-btn">1</button>
+    <button onclick="responderBDI(2)" class="bdi-num-btn">2</button>
+    <button onclick="responderBDI(3)" class="bdi-num-btn">3</button>
+    
+    <button onclick="preguntaAnterior()" 
+            class="btn-anterior">
+        ← Pregunta Anterior
+    </button>
 </div>
+
 <!-- Calculadora -->
 <div id="calc">
     <button onclick="cerrarCalculadora()" style="float:right;background:#f33;">✖</button>
@@ -349,81 +392,83 @@ let estado = "neutral";   // emoción actual
 // ────────────────────────────────────────────────
 function limpiar(texto){return texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();}
 // ==================== VOZ REAL - USANDO TUS GRABACIONES ====================
+// ==================== FUNCIÓN SPEAK CORREGIDA ====================
 let audioActual = null;
 
 function speak(texto) {
     speaking = true;
 
-    // Si hay un audio reproduciéndose, lo paramos primero
+    // Parar cualquier audio anterior
     if (audioActual) {
         audioActual.pause();
     }
 
+    const textoLower = texto.toLowerCase();
     let archivoAudio = "";
 
-    // === Mapeo de textos a tus archivos de audio ===
-    const textoLower = texto.toLowerCase();
+    // === RUTAS DE TUS AUDIOS (cambia la URL base si es necesario) ===
+    const baseUrl = "https://raw.githubusercontent.com/TU-USUARIO/TU-REPOSITORIO/main/voces/";
 
-    if (textoLower.includes("hola") || textoLower.includes("soy charlie")) {
-        archivoAudio = "voces/hola.mp4";
+    if (textoLower.includes("hola") || textoLower.includes("charlie")) {
+        archivoAudio = baseUrl + "hola.mp3";
     }
-    else if (textoLower.includes("modo estudios") || textoLower.includes("estudios activado")) {
-        archivoAudio = "voces/modo_estudios.mp4";
+    else if (textoLower.includes("modo estudios")) {
+        archivoAudio = baseUrl + "modo_estudios.mp3";
     }
-    else if (textoLower.includes("modo emocional") || textoLower.includes("emocional activado")) {
-        archivoAudio = "voces/modo_emocional.mp4";
+    else if (textoLower.includes("modo emocional")) {
+        archivoAudio = baseUrl + "modo_emocional.mp3";
     }
-    else if (textoLower.includes("modo ejercicio") || textoLower.includes("ejercicio activado")) {
-        archivoAudio = "voces/modo_ejercicio.mp4";
+    else if (textoLower.includes("modo ejercicio")) {
+        archivoAudio = baseUrl + "modo_ejercicio.mp3";
     }
-    else if (textoLower.includes("modo hobbies") || textoLower.includes("hobbies activado")) {
-        archivoAudio = "voces/modo_hobbies.mp4";
+    else if (textoLower.includes("inhala") || textoLower.includes("respiración")) {
+        archivoAudio = baseUrl + "inhala.mp3";
     }
-    else if (textoLower.includes("respiración") || textoLower.includes("inhala")) {
-        archivoAudio = "voces/inhala.mp4";
+    else if (textoLower.includes("exhala")) {
+        archivoAudio = baseUrl + "exhala.mp3";
     }
-    else if (textoLower.includes("exhala") || textoLower.includes("suelta")) {
-        archivoAudio = "voces/exhala.mp4";
+    else if (textoLower.includes("muy bien") || textoLower.includes("excelente")) {
+        archivoAudio = baseUrl + "excelente.mp3";
     }
-    else if (textoLower.includes("muy bien") || textoLower.includes("excelente trabajo")) {
-        archivoAudio = "voces/excelente.mp4";
-    }
-    else if (textoLower.includes("modo normal") || textoLower.includes("normal")) {
-        archivoAudio = "voces/modo_normal.mp4";
-    }
-    else if (textoLower.includes("rutina de 10 minutos")) {
-        archivoAudio = "voces/rutina_10.mp4";
+    else if (textoLower.includes("normal")) {
+        archivoAudio = baseUrl + "modo_normal.mp3";
     }
     else {
-        // Si no encuentra coincidencia, usa la voz del navegador como respaldo
+        // Fallback: Usar voz del navegador (esto debería funcionar siempre)
         let msg = new SpeechSynthesisUtterance(texto);
         msg.lang = "es-MX";
         msg.pitch = 1.05;
         msg.rate = 1.0;
         speechSynthesis.speak(msg);
-        speaking = false;
+        
+        msg.onend = () => { speaking = false; };
         return;
     }
 
-    // Reproducir tu grabación
+    // Intentar reproducir tu audio grabado
     audioActual = new Audio(archivoAudio);
     
-    audioActual.onended = function() {
+    audioActual.onended = () => {
         speaking = false;
     };
 
-    audioActual.onerror = function() {
-        console.log("No se encontró el archivo: " + archivoAudio);
-        // Si falla, usa voz del navegador
+    audioActual.onerror = () => {
+        console.log("Audio no encontrado, usando voz del navegador");
         let msg = new SpeechSynthesisUtterance(texto);
         msg.lang = "es-MX";
         speechSynthesis.speak(msg);
         speaking = false;
     };
 
-    audioActual.play();
+    audioActual.play().catch(() => {
+        // Si todo falla, usar voz del navegador
+        let msg = new SpeechSynthesisUtterance(texto);
+        msg.lang = "es-MX";
+        speechSynthesis.speak(msg);
+        speaking = false;
+    });
 }
-// ==================================================================
+// ==================================================================// ==================================================================
 function iniciarRespiracion(){
 
   if(respirando) return;
@@ -484,6 +529,50 @@ function crearEstructura(){
 }
 
 // 👇 AQUÍ PEGAS TU CÓDIGO
+// ==================== IA GOOGLE GEMINI ====================
+async function respuestaConGemini(pregunta) {
+    answerDiv.style.display = "block";
+    answerDiv.innerHTML = `<p><strong>Pensando...</strong></p>`;
+
+    const API_KEY = "AIzaSyCnxsCvQ78ZGc_lic9OPPhzd_l2j8pW_eg";   // ←←← CAMBIA ESTO
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+
+    const payload = {
+        contents: [{
+            parts: [{
+                text: `Eres Charlie, un asistente amigable, útil y con buena personalidad. 
+                       Responde de forma natural y cercana en español.
+                       Pregunta del usuario: ${pregunta}`
+            }]
+        }]
+    };
+
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.candidates && data.candidates[0]) {
+            let respuestaIA = data.candidates[0].content.parts[0].text;
+
+            answerDiv.innerHTML = `<strong>Charlie:</strong><br>${respuestaIA.replace(/\n/g, '<br>')}`;
+            speak(respuestaIA);
+        } else {
+            answerDiv.innerHTML = "Lo siento, no pude obtener respuesta.";
+            speak("Lo siento, no pude obtener respuesta ahora.");
+        }
+    } catch (error) {
+        console.error(error);
+        answerDiv.innerHTML = "Error de conexión . ¿Estás conectado a internet?";
+        speak("Error de conexión .");
+    }
+}
+// ==================================================================
 
 // ==================== MODO RESPIRACIÓN GUIADA ====================
 function iniciarRespiracionGuiada() {
@@ -610,9 +699,9 @@ function mostrarComandosModo(modo) {
             break;
 
         case "emocional":
-            mensaje = "Modo Emocional activado. Estoy aquí para ayudarte con tus emociones.";
+            mensaje = "Modo Emocional activado.";
             htmlMensaje = `
-                <strong>❤️ Modo Emocional</strong><br><br>
+                <strong> Modo Emocional</strong><br><br>
                 Responde solo con números del 0 al 3 en las preguntas.<br><br>
                 Puedes decir:<br>
                 • Salir<br>
@@ -868,16 +957,70 @@ function responderBDI(valor){
 // ────────────────────────────────────────────────
 // RECONOCIMIENTO DE VOZ
 // ────────────────────────────────────────────────
+// ────────────────────────────────────────────────
+// RECONOCIMIENTO DE VOZ + WAKE WORD "CHARLIE"
+// ────────────────────────────────────────────────
 let recognition = null;
-if("SpeechRecognition"in window||"webkitSpeechRecognition"in window){
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recognition = new SR();
-  recognition.lang = "es-MX";
-  recognition.continuous = false;
-  recognition.interimResults = false;
-  recognition.onend = () => {mic.innerText = "🎤";};
-}else mic.style.display = "none";
+let isListening = false;
 
+if ("SpeechRecognition" in window || "webkitSpeechRecognition" in window) {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SR();
+    recognition.lang = "es-MX";
+    recognition.continuous = true;        // Importante: modo continuo
+    recognition.interimResults = false;
+
+    recognition.onresult = function(event) {
+        let texto = event.results[event.results.length - 1][0].transcript.trim();
+        console.log("Escuchado:", texto);
+
+        // Si dice "Charlie" → activa el micrófono visualmente y procesa
+        if (texto.toLowerCase().includes("charlie")) {
+            mic.innerText = "🛑";           // Cambia el icono a grabando
+            isListening = true;
+            speak("Sí, dime...");           // Respuesta de activación
+            input.value = "";               // Limpia el input
+            return;
+        }
+
+        // Si ya está escuchando, procesa el comando
+        if (isListening) {
+            input.value = texto;
+            respond(texto);
+            
+            // Después de responder, vuelve a modo espera
+            setTimeout(() => {
+                isListening = false;
+                mic.innerText = "🎤";
+            }, 1500);
+        }
+    };
+
+    recognition.onend = function() {
+        mic.innerText = "🎤";
+        isListening = false;
+    };
+
+} else {
+    console.log("Tu navegador no soporta reconocimiento de voz");
+    mic.style.display = "none";
+}
+
+// Activar micrófono manualmente (click)
+mic.onclick = () => {
+    if (!recognition) return;
+
+    if (isListening) {
+        recognition.stop();
+        isListening = false;
+        mic.innerText = "🎤";
+    } else {
+        recognition.start();
+        isListening = true;
+        mic.innerText = "🛑";
+        speak("Escuchando...");
+    }
+};
 // ────────────────────────────────────────────────
 // DETECTAR INTENCIÓN
 // ────────────────────────────────────────────────
@@ -961,23 +1104,68 @@ function iniciarModoEmocional(){
 
 function siguientePreguntaBDI(){
   if(faseBDI < preguntasBDI.length){
+    
+    // Mostrar la pregunta escrita en pantalla
+    answerDiv.style.display = "block";
+    answerDiv.innerHTML = `
+      <strong>Pregunta ${faseBDI + 1} de 21</strong><br><br>
+      ${preguntasBDI[faseBDI]}
+      <br><br>
+      <small>Responde solo con 0, 1, 2 o 3</small>
+    `;
+
+    // Hablar la pregunta
     speak(preguntasBDI[faseBDI]);
-    statusEl.innerText = `Pregunta ${faseBDI+1}/21`;
-  }else calcularYMostrarResultadoBDI();
+    
+    statusEl.innerText = `Pregunta ${faseBDI + 1}/21`;
+  } else {
+    calcularYMostrarResultadoBDI();
+  }
+}
+
+// ==================== FUNCIONES DEL MODO EMOCIONAL ====================
+function responderBDI(valor) {
+    procesarRespuestaBDI(String(valor));
 }
 
 function procesarRespuestaBDI(texto){
   if(!modoEmocionalActivo) return;
+
+  // Se calla inmediatamente cuando respondes
+  speechSynthesis.cancel();
+
   let num = parseInt(texto.trim());
-  if(isNaN(num)||num<0||num>3){speak("Por favor responde solo con 0, 1, 2 o 3.");return;}
-  respuestasBDI.push(num);faseBDI++;
+  if(isNaN(num) || num < 0 || num > 3){
+    speak("Por favor responde solo con 0, 1, 2 o 3.");
+    return;
+  }
+
+  respuestasBDI.push(num);
+  faseBDI++;
+
   if(faseBDI < preguntasBDI.length){
-    speak(preguntasBDI[faseBDI]);
-  }else calcularYMostrarResultadoBDI();
+    siguientePreguntaBDI();
+  } else {
+    calcularYMostrarResultadoBDI();
+  }
 }
 
+function preguntaAnterior(){
+  if(!modoEmocionalActivo) return;
+  
+  speechSynthesis.cancel();
+
+  if(faseBDI > 0){
+    faseBDI--;
+    if(respuestasBDI.length > 0) respuestasBDI.pop();
+    siguientePreguntaBDI();
+  } else {
+    speak("Ya estás en la primera pregunta.");
+  }
+}
+// ==================================================================
 function calcularYMostrarResultadoBDI(){
-document.getElementById("bdiButtons").style.display = "none"; // 👈 OCULTAR BOTONES
+document.getElementById("bdiButtons").style.display = "none"; // 
   modoEmocionalActivo = false;
   const total = respuestasBDI.reduce((a,b)=>a+b,0);
   speak(`¡Gracias por completar el test! Tu puntuación es ${total} de 63.`);
@@ -1017,9 +1205,9 @@ function guardarResultado(){
   speak("Resultado guardado localmente.");
 }
 
-// ────────────────────────────────────────────────
+
 // MODO ESTUDIOS + TRADUCCIÓN SIEMPRE DISPONIBLE
-// ────────────────────────────────────────────────
+
 function iniciarModoEstudios(){
   modoEstudiosActivo = true;
   speak("Modo Estudios activado.");
@@ -1120,64 +1308,65 @@ if (limpio.includes("traduce") || limpio.includes("traducir") || limpio.includes
 // ────────────────────────────────────────────────
 // RESPOND PRINCIPAL
 // ────────────────────────────────────────────────
+// ────────────────────────────────────────────────
+// RESPOND PRINCIPAL (CORREGIDA)
+// ────────────────────────────────────────────────
 function respond(text){
   let limpio = limpiar(text);
   let intencion = detectarIntencion(text);
+
   // Detección de YouTube
   if (detectarYouTube(text)) {
-    return;   // Si es una búsqueda de YouTube, terminamos aquí
+    return;
   }
 
   // Salir de cualquier modo
   if (intencion === "salir") {
-    modoRacistaSecreto = false;
     modoEmocionalActivo = false;
     modoEstudiosActivo = false;
+    modoEjercicioActivo = false;
+    modoHobbiesActivo = false;
     creandoPerfil = false;
-    faseCuestionario = 0;
     faseBDI = 0;
     respuestasBDI = [];
-    modo = "normal";
     stateColor.h = 200;
-    radius = baseRadius;
-    input.disabled = false;
     answerDiv.style.display = "none";
-    document.getElementById("resultModal").style.display = "none";
-    speak("¡Todos los modos desactivados! Estoy aquí para ayudarte con una sonrisa . ¿En qué te puedo apoyar ahora?");
-    statusEl.innerText = "Modo normal activado.";
-document.getElementById("bdiButtons").style.display = "none";
-document.getElementById("moodBoard").style.display = "none";
+    document.getElementById("bdiButtons").style.display = "none";
+    document.getElementById("moodBoard").style.display = "none";
+    
+    speak("¡Todos los modos desactivados! Estoy aquí para ayudarte.");
+    statusEl.innerText = "Charlie listo - Modo Normal";
     return;
   }
 
-if (intencion === "modo_humor") {
-  activarModoHumor();
-  return;
-}
-if (intencion === "chiste") {
-  contarChistePositivo();
-  return;
-}
+  if (intencion === "modo_humor") {
+    activarModoHumor();
+    return;
+  }
 
-  // Modo emocional
+  if (intencion === "chiste") {
+    contarChistePositivo();
+    return;
+  }
+
+  // Modos especiales
   if (intencion === "modo_emocional") {
     iniciarModoEmocional();
     return;
   }
 
-if (intencion === "respirar") {
-  iniciarRespiracion();
-  return;
-}
-
-if (intencion === "detener_respiracion") {
-  detenerRespiracion();
-  return;
-}
-
-  // Modo estudios
   if (intencion === "modo_estudios") {
     iniciarModoEstudios();
+    return;
+  }
+
+  if (intencion === "respirar") {
+    iniciarRespiracion();
+    return;
+  }
+
+  if (intencion === "detener_respiracion") {
+    detenerRespiracion();
     return;
   }
 
@@ -1187,51 +1376,30 @@ if (intencion === "detener_respiracion") {
     return;
   }
 
-  // Chiste (solo en modo racista)
-  if (intencion === "chiste") {
-    contarChiste();
+  // Procesar según modo activo
+  if (modoEmocionalActivo) {
+    procesarRespuestaBDI(text);
     return;
   }
 
-  // Procesar según modo activo
-  if (creandoPerfil) {
-    if (faseCuestionario === 1) {
-      perfil.nombre = text.trim();
-      if (cargarPerfilPorNombre(perfil.nombre)) {
-        speak(`¡Bienvenido de nuevo, ${perfil.nombre}! Perfil cargado.`);
-        chequearPerfilInaceptable();
-        creandoPerfil = false;
-      } else {
-        faseCuestionario = 2;
-        speak(`Perfecto, ${perfil.nombre}. ¿Altura en cm?`);
-      }
-      return;
-    }
-    if (faseCuestionario === 2) { perfil.altura = text.trim(); faseCuestionario=3; speak("¿Color de ojos?"); return; }
-    if (faseCuestionario === 3) { perfil.ojos = text.trim(); faseCuestionario=4; speak("¿Color de piel?"); return; }
-    if (faseCuestionario === 4) { perfil.colorPiel = text.trim(); faseCuestionario=5; speak("¿Dices Hail Hitler? (sí/no)"); return; }
-    if (faseCuestionario === 5) {
-      perfil.hailHitler = text.trim().toLowerCase();
-      guardarPerfil();
-      creandoPerfil = false;
-      speak(`Perfil completo, ${perfil.nombre}.`);
-      chequearPerfilInaceptable();
-      return;
-    }
+  if (modoEstudiosActivo) {
+    procesarConsultaEstudios(text);
+    return;
   }
-
-  if (modoEmocionalActivo) {procesarRespuestaBDI(text); return;}
-  if (modoEstudiosActivo) {procesarConsultaEstudios(text); return;}
 
   if (modoEjercicioActivo) {
     procesarEjercicio(text);
     return;
   }
 
-  // Respuesta amable por defecto
-  speak("¡Claro! Estoy aquí para ayudarte con gusto . ¿En qué te puedo apoyar hoy?");
-}
+  if (modoHobbiesActivo) {
+    procesarHobbies(text);
+    return;
+  }
 
+  // === IA GEMINI - Respuesta inteligente cuando no está en ningún modo especial ===
+  respuestaConGemini(text);
+}
 // ────────────────────────────────────────────────
 // EVENTOS
 // ────────────────────────────────────────────────
